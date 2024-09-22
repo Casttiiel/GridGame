@@ -17,21 +17,26 @@ func _ready():
 	moving = false
 
 func _input(event):
+	var inputDir = Vector2()
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			print("hey")
+			var relativeClick = get_global_mouse_position() - position
+			if(abs(relativeClick.x) > abs(relativeClick.y)):
+				inputDir = Vector2.RIGHT if relativeClick.x > 0 else Vector2.LEFT
+			else: 
+				inputDir = Vector2.DOWN if relativeClick.y > 0 else Vector2.UP
 			
 	elif event is InputEventKey and !moving:
-		var inputDir = Vector2()
 		if event.keycode  == KEY_W and event.pressed and !upRayCast.is_colliding():
 			inputDir = Vector2.UP
-		if event.keycode  == KEY_A and event.pressed and !leftRayCast.is_colliding():
+		elif event.keycode  == KEY_A and event.pressed and !leftRayCast.is_colliding():
 			inputDir = Vector2.LEFT
-		if event.keycode  == KEY_S and event.pressed and !downRayCast.is_colliding():
+		elif event.keycode  == KEY_S and event.pressed and !downRayCast.is_colliding():
 			inputDir = Vector2.DOWN
-		if event.keycode  == KEY_D and event.pressed and !rightRayCast.is_colliding():
+		elif event.keycode  == KEY_D and event.pressed and !rightRayCast.is_colliding():
 			inputDir = Vector2.RIGHT
-		calculateTargetPos(inputDir)
+			
+	calculateTargetPos(inputDir)
 
 func calculateTargetPos(inputDir):
 	var currentGridPos = tileMap.local_to_map(tileMap.to_local(position))
@@ -39,12 +44,13 @@ func calculateTargetPos(inputDir):
 	targetPos = tileMap.to_global(tileMap.map_to_local(newGridPos))
 
 func _physics_process(delta):	
+	position = targetPos
 	if position.distance_to(targetPos) > 3:
 		moving = true
 		var moveDir = (targetPos - position).normalized()
 		velocity = moveDir * SPEED
-		#move_and_collide(moveDir * delta * SPEED)
 		move_and_slide()
+		#move_and_collide(moveDir * delta * SPEED)
 	else: 
 		moving = false
 		position = targetPos
